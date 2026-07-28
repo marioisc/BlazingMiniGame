@@ -80,11 +80,22 @@ class Gameplay(Scene):
 
             enemy.update(delta_time)
 
+        self.check_bullet_enemy_collisions() 
+        self.check_player_enemy_collisions()   
+
         self.enemies = [
             enemy
             for enemy in self.enemies
             if enemy.is_active
         ]
+        self.player._bullets = [
+            bullet
+            for bullet in self.player.bullets
+            if bullet.is_active
+        ]
+        if not self.player.is_alive:
+
+            self.game.running = False
 
     def draw(
         self,
@@ -110,3 +121,40 @@ class Gameplay(Scene):
         )
 
         self.enemies.append(enemy)
+
+    def check_bullet_enemy_collisions(self) -> None:
+
+        for bullet in self.player.bullets:
+
+            if not bullet.is_active:
+                continue
+
+            for enemy in self.enemies:
+
+                if not enemy.is_active:
+                    continue
+
+                if bullet.collides_with(enemy):
+
+                    bullet.destroy()
+                    enemy.destroy()
+
+                    break
+    def check_player_enemy_collisions(self) -> None:
+
+        if self.player.is_invulnerable:
+            return
+
+        for enemy in self.enemies:
+
+            if not enemy.is_active:
+                continue
+
+            if self.player.collides_with(enemy):
+
+                enemy.destroy()
+
+                self.player.lose_life()
+
+                break
+
