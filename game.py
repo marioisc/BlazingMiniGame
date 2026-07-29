@@ -30,7 +30,7 @@ from config import (
 
 from scenes.menu import Menu
 from scenes.scene import Scene
-
+from scenes.gameover import GameOver
 
 class Game:
     """
@@ -94,7 +94,10 @@ class Game:
     # =====================================================
     # Events
     # =====================================================
+    def show_game_over(self) -> None:
 
+        self.current_scene = GameOver(self)
+    
     def process_events(self) -> list[pygame.event.Event]:
 
         events = pygame.event.get()

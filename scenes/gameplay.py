@@ -20,6 +20,11 @@ from config import (
     ENEMY_SPAWN_INTERVAL,
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
+    HUD_COLOR,
+    DEFAULT_FONT,
+    DEFAULT_FONT_SIZE,
+    INITIAL_SCORE,
+    SCORE_ENEMY_DESTROYED,
 )
 
 from entities.enemy import Enemy
@@ -42,6 +47,12 @@ class Gameplay(Scene):
         self.enemies: list[Enemy] = []
 
         self.enemy_spawn_timer = 0.0
+        self.score = INITIAL_SCORE
+
+        self.font = pygame.font.SysFont(
+            DEFAULT_FONT,
+            DEFAULT_FONT_SIZE,
+        )
 
     def handle_events(
         self,
@@ -95,7 +106,8 @@ class Gameplay(Scene):
         ]
         if not self.player.is_alive:
 
-            self.game.running = False
+            self.game.show_game_over()
+            return
 
     def draw(
         self,
@@ -109,6 +121,7 @@ class Gameplay(Scene):
         for enemy in self.enemies:
 
             enemy.draw(screen)
+            self.draw_hud(screen)
 
     def spawn_enemy(self) -> None:
 
@@ -138,7 +151,7 @@ class Gameplay(Scene):
 
                     bullet.destroy()
                     enemy.destroy()
-
+                    self.score += SCORE_ENEMY_DESTROYED
                     break
     def check_player_enemy_collisions(self) -> None:
 
@@ -157,4 +170,31 @@ class Gameplay(Scene):
                 self.player.lose_life()
 
                 break
+
+    def draw_hud(
+        self,
+        screen: pygame.Surface,
+    ) -> None:
+
+        score_surface = self.font.render(
+            f"Score: {self.score}",
+            True,
+            HUD_COLOR,
+        )
+
+        lives_surface = self.font.render(
+            f"Lives: {self.player.lives}",
+            True,
+            HUD_COLOR,
+        )
+
+        screen.blit(
+            score_surface,
+            (20, 20),
+        )
+
+        screen.blit(
+            lives_surface,
+            (20, 60),
+        )
 
