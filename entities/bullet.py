@@ -13,10 +13,10 @@ from pygame import Color
 import pygame
 
 from config import SCREEN_WIDTH
-from entities.entity import Entity
+from entities.bullet_base import BulletBase
 
 
-class Bullet(Entity):
+class Bullet(BulletBase):
     """
     Basic projectile entity.
     """
@@ -50,8 +50,8 @@ class Bullet(Entity):
         super().__init__(
             x=x,
             y=y,
-            width=self.WIDTH,
-            height=self.HEIGHT,
+            speed_x=self.SPEED,
+            speed_y=0.0,
         )
 
         self.direction_x: float = direction_x
@@ -69,8 +69,7 @@ class Bullet(Entity):
         delta_time:
             Time elapsed since previous frame.
         """
-        self.x += self.direction_x * self.SPEED * delta_time
-        self.y += self.direction_y * self.SPEED * delta_time
+        super().update(delta_time)
 
         self.sync_rect()
         if self.rect.left > SCREEN_WIDTH:

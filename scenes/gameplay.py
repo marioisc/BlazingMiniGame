@@ -17,14 +17,14 @@ import pygame
 
 from config import (
     BACKGROUND_COLOR,
-    ENEMY_SPAWN_INTERVAL,
-    SCREEN_HEIGHT,
-    SCREEN_WIDTH,
-    HUD_COLOR,
     DEFAULT_FONT,
     DEFAULT_FONT_SIZE,
+    ENEMY_SPAWN_INTERVAL,
+    HUD_COLOR,
     INITIAL_SCORE,
     SCORE_ENEMY_DESTROYED,
+    SCREEN_HEIGHT,
+    SCREEN_WIDTH,
 )
 
 from entities.enemy import Enemy
@@ -35,7 +35,10 @@ from scenes.scene import Scene
 
 class Gameplay(Scene):
 
-    def __init__(self, game) -> None:
+    def __init__(
+        self,
+        game,
+    ) -> None:
 
         super().__init__(game)
 
@@ -47,6 +50,7 @@ class Gameplay(Scene):
         self.enemies: list[Enemy] = []
 
         self.enemy_spawn_timer = 0.0
+
         self.score = INITIAL_SCORE
 
         self.font = pygame.font.SysFont(
@@ -66,7 +70,6 @@ class Gameplay(Scene):
                 if event.key == pygame.K_ESCAPE:
 
                     self.game.running = False
-
     def update(
         self,
         delta_time: float,
@@ -89,24 +92,52 @@ class Gameplay(Scene):
 
         for enemy in self.enemies:
 
-            enemy.update(delta_time)
+            enemy.update(
+                delta_time,
+            )
 
-        self.check_bullet_enemy_collisions() 
-        self.check_player_enemy_collisions()   
+        self.check_bullet_enemy_collisions()
+
+        self.check_player_enemy_collisions()
+
+        self.check_enemy_bullet_collisions()
 
         self.enemies = [
+
             enemy
+
             for enemy in self.enemies
+
             if enemy.is_active
+
         ]
+
+        for enemy in self.enemies:
+
+            enemy._bullets = [
+
+                bullet
+
+                for bullet in enemy.bullets
+
+                if bullet.is_active
+
+            ]
+
         self.player._bullets = [
+
             bullet
+
             for bullet in self.player.bullets
+
             if bullet.is_active
+
         ]
+
         if not self.player.is_alive:
 
             self.game.show_game_over()
+
             return
 
     def draw(
@@ -114,53 +145,83 @@ class Gameplay(Scene):
         screen: pygame.Surface,
     ) -> None:
 
-        screen.fill(BACKGROUND_COLOR)
+        screen.fill(
+            BACKGROUND_COLOR,
+        )
 
-        self.player.draw(screen)
+        self.player.draw(
+            screen,
+        )
 
         for enemy in self.enemies:
 
-            enemy.draw(screen)
-            self.draw_hud(screen)
+            enemy.draw(
+                screen,
+            )
 
-    def spawn_enemy(self) -> None:
-
-        enemy = Enemy(
-            SCREEN_WIDTH,
-            random.randint(
-                0,
-                SCREEN_HEIGHT - Enemy.HEIGHT,
-            ),
+        self.draw_hud(
+            screen,
         )
 
-        self.enemies.append(enemy)
+    def spawn_enemy(
+        self,
+    ) -> None:
 
-    def check_bullet_enemy_collisions(self) -> None:
+        enemy = Enemy(
+
+            SCREEN_WIDTH,
+
+            random.randint(
+
+                0,
+
+                SCREEN_HEIGHT - Enemy.HEIGHT,
+
+            ),
+
+        )
+
+        self.enemies.append(
+            enemy,
+        )
+    def check_bullet_enemy_collisions(
+        self,
+    ) -> None:
 
         for bullet in self.player.bullets:
 
             if not bullet.is_active:
+
                 continue
 
             for enemy in self.enemies:
 
                 if not enemy.is_active:
+
                     continue
 
                 if bullet.collides_with(enemy):
 
                     bullet.destroy()
+
                     enemy.destroy()
+
                     self.score += SCORE_ENEMY_DESTROYED
+
                     break
-    def check_player_enemy_collisions(self) -> None:
+
+    def check_player_enemy_collisions(
+        self,
+    ) -> None:
 
         if self.player.is_invulnerable:
+
             return
 
         for enemy in self.enemies:
 
             if not enemy.is_active:
+
                 continue
 
             if self.player.collides_with(enemy):
@@ -171,30 +232,73 @@ class Gameplay(Scene):
 
                 break
 
+    def check_enemy_bullet_collisions(
+        self,
+    ) -> None:
+
+        if self.player.is_invulnerable:
+
+            return
+
+        for enemy in self.enemies:
+
+            for bullet in enemy.bullets:
+
+                if not bullet.is_active:
+
+                    continue
+
+                if bullet.collides_with(self.player):
+
+                    bullet.destroy()
+
+                    self.player.lose_life()
+
+                    return
+
     def draw_hud(
         self,
         screen: pygame.Surface,
     ) -> None:
 
         score_surface = self.font.render(
+
             f"Score: {self.score}",
+
             True,
+
             HUD_COLOR,
+
         )
 
         lives_surface = self.font.render(
+
             f"Lives: {self.player.lives}",
+
             True,
+
             HUD_COLOR,
+
         )
 
         screen.blit(
+
             score_surface,
-            (20, 20),
+
+            (
+                20,
+                20,
+            ),
+
         )
 
         screen.blit(
-            lives_surface,
-            (20, 60),
-        )
 
+            lives_surface,
+
+            (
+                20,
+                60,
+            ),
+
+        )                    
