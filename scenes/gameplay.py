@@ -102,37 +102,7 @@ class Gameplay(Scene):
 
         self.check_enemy_bullet_collisions()
 
-        self.enemies = [
-
-            enemy
-
-            for enemy in self.enemies
-
-            if enemy.is_active
-
-        ]
-
-        for enemy in self.enemies:
-
-            enemy._bullets = [
-
-                bullet
-
-                for bullet in enemy.bullets
-
-                if bullet.is_active
-
-            ]
-
-        self.player._bullets = [
-
-            bullet
-
-            for bullet in self.player.bullets
-
-            if bullet.is_active
-
-        ]
+        self.cleanup_entities()
 
         if not self.player.is_alive:
 
@@ -184,6 +154,35 @@ class Gameplay(Scene):
         self.enemies.append(
             enemy,
         )
+
+    def cleanup_entities(
+        self,
+    ) -> None:
+
+        self.enemies = [
+
+            enemy
+
+            for enemy in self.enemies
+
+            if enemy.is_active
+
+        ]
+
+        for enemy in self.enemies:
+
+            enemy._bullets = [
+
+                bullet
+
+                for bullet in enemy.bullets
+
+                if bullet.is_active
+
+            ]
+
+        self.player.cleanup_bullets()
+        
     def check_bullet_enemy_collisions(
         self,
     ) -> None:
