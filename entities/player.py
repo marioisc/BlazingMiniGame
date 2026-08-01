@@ -141,16 +141,12 @@ class Player(Entity):
         self,
         surface: pygame.Surface,
     ) -> None:
-        """
-        Draw player.
-        """
-        # Blink while invulnerable.
+
         if (
-            self.is_invulnerable
-            and (pygame.time.get_ticks() // 100) % 2 == 0
+            not self.is_invulnerable
+            or (pygame.time.get_ticks() // 100) % 2 != 0
         ):
-            pass
-        else:
+
             pygame.draw.rect(
                 surface,
                 PLAYER_COLOR,
@@ -158,7 +154,10 @@ class Player(Entity):
             )
 
         for bullet in self._bullets:
-            bullet.draw(surface)
+
+            bullet.draw(
+            surface,
+            )
 
     def _shoot(
         self,
@@ -175,33 +174,36 @@ class Player(Entity):
             bullet,
         )
 
-    def lose_life(self) -> bool:
-        """
-        Remove one life from the player.
+    def lose_life(
+        self,
+    ) -> bool:
 
-        Returns:
-            True if a life was lost.
-            False if the player was invulnerable.
-        """
         if self.is_invulnerable:
+
             return False
 
         if self._lives > 0:
+
             self._lives -= 1
 
-        self._invulnerability_timer = PLAYER_INVULNERABILITY_TIME
+        self._invulnerability_timer = (
+            PLAYER_INVULNERABILITY_TIME
+        )
 
         return True
 
-    def add_life(self) -> None:
-        """
-        Increase player lives up to the maximum.
-        """
-        self._lives = min(
-            self._lives + 1,
-            PLAYER_MAX_LIVES,
-        )
+    def add_life(
+        self,
+    ) -> None:
 
+        self._lives = min(
+
+            self._lives + 1,
+
+            PLAYER_MAX_LIVES,
+
+        )
+        
     @property
     def bullets(self) -> list[Bullet]:
         """
