@@ -65,6 +65,24 @@ class Player(Entity):
         """
         Update player.
         """
+        self.handle_input(
+            delta_time,
+            keys,
+        )
+
+        self.update_fire(
+            delta_time,
+            keys,
+        )
+
+        self.update_invulnerability(
+            delta_time,
+        )
+
+        self.update_bullets(
+            delta_time,
+        )
+
         dx = 0.0
         dy = 0.0
 
@@ -142,16 +160,20 @@ class Player(Entity):
         for bullet in self._bullets:
             bullet.draw(surface)
 
-    def _shoot(self) -> None:
-        """
-        Spawn a new bullet.
-        """
+    def _shoot(
+        self,
+    ) -> None:
+
         bullet = Bullet(
+
             x=self.x + (PLAYER_WIDTH / 2),
+
             y=self.y,
         )
 
-        self._bullets.append(bullet)
+        self._bullets.append(
+            bullet,
+        )
 
     def lose_life(self) -> bool:
         """
@@ -207,3 +229,127 @@ class Player(Entity):
         True if the player still has lives remaining.
         """
         return self._lives > 0
+
+    def handle_input(
+        self,
+        delta_time: float,
+        keys: Sequence[bool],
+    ) -> None:
+
+        dx = 0.0
+        dy = 0.0
+
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+           dx -= self._speed * delta_time
+
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+           dx += self._speed * delta_time
+
+        if keys[pygame.K_UP] or keys[pygame.K_w]:
+           dy -= self._speed * delta_time
+
+        if keys[pygame.K_DOWN] or keys[pygame.K_s]:
+           dy += self._speed * delta_time
+
+        self.move(
+            dx,
+            dy,
+        )
+    def move(
+        self,
+        dx: float,
+        dy: float,
+    ) -> None:
+
+        self.x += dx
+        self.y += dy
+
+        self.clamp_position()
+
+        self.sync_rect()
+    def clamp_position(
+        self,
+    ) -> None:
+
+        self.x = max(
+            0,
+            min(
+                self.x,
+                SCREEN_WIDTH - PLAYER_WIDTH,
+            ),
+        )
+
+        self.y = max(
+            0,
+            min(
+                self.y,
+                SCREEN_HEIGHT - PLAYER_HEIGHT,
+            ),
+        )
+    def update_fire(
+        self,
+        delta_time: float,
+        keys: Sequence[bool],
+    ) -> None:
+
+        if self._fire_timer > 0.0:
+
+            self._fire_timer -= delta_time
+
+        self.try_fire(
+            keys,
+        )
+    def try_fire(
+        self,
+        keys: Sequence[bool],
+    ) -> None:
+
+        if not keys[pygame.K_SPACE]:
+
+            return
+
+        if self._fire_timer > 0.0:
+
+            return
+
+        self._shoot()
+
+        self._fire_timer = self.FIRE_COOLDOWN
+    def update_invulnerability(
+        self,
+        delta_time: float,
+    ) -> None:
+
+        if self._invulnerability_timer > 0.0:
+
+            self._invulnerability_timer -= delta_time
+    def update_bullets(
+        self,
+        delta_time: float,
+    ) -> None:
+
+        for bullet in self._bullets:
+
+            bullet.update(
+                delta_time,
+            )
+
+        self.cleanup_bullets()    
+    def cleanup_bullets(
+        self,
+    ) -> None:
+
+        self._bullets = [
+
+            bullet
+
+            for bullet in self._bullets
+
+            if (
+                bullet.is_active
+                and bullet.rect.right > 0
+                and bullet.rect.left < SCREEN_WIDTH
+            )
+
+        ]
+    
