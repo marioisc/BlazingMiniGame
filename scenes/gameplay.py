@@ -75,40 +75,23 @@ class Gameplay(Scene):
         delta_time: float,
     ) -> None:
 
-        keys = pygame.key.get_pressed()
-
-        self.player.update(
+        self.update_player(
             delta_time,
-            keys,
         )
 
-        self.enemy_spawn_timer += delta_time
+        self.spawn_enemies(
+            delta_time,
+        )
 
-        if self.enemy_spawn_timer >= ENEMY_SPAWN_INTERVAL:
+        self.update_enemies(
+            delta_time,
+        )
 
-            self.spawn_enemy()
-
-            self.enemy_spawn_timer = 0.0
-
-        for enemy in self.enemies:
-
-            enemy.update(
-                delta_time,
-            )
-
-        self.check_bullet_enemy_collisions()
-
-        self.check_player_enemy_collisions()
-
-        self.check_enemy_bullet_collisions()
+        self.update_collisions()
 
         self.cleanup_entities()
 
-        if not self.player.is_alive:
-
-            self.game.show_game_over()
-
-            return
+        self.update_game_state()
 
     def draw(
         self,
@@ -292,4 +275,57 @@ class Gameplay(Scene):
                 60,
             ),
 
-        )                    
+        )
+    def update_player(
+        self,
+        delta_time: float,
+    ) -> None:
+
+        keys = pygame.key.get_pressed()
+
+        self.player.update(
+            delta_time,
+            keys,
+        )
+    def spawn_enemies(
+        self,
+        delta_time: float,
+    ) -> None:
+
+        self.enemy_spawn_timer += delta_time
+
+        if self.enemy_spawn_timer < ENEMY_SPAWN_INTERVAL:
+
+            return
+
+        self.spawn_enemy()
+
+        self.enemy_spawn_timer = 0.0                    
+    def update_enemies(
+        self,
+        delta_time: float,
+    ) -> None:
+
+        for enemy in self.enemies:
+
+            enemy.update(
+                delta_time,
+            )
+    def update_collisions(
+        self,
+    ) -> None:
+
+        self.check_bullet_enemy_collisions()
+
+        self.check_player_enemy_collisions()
+
+        self.check_enemy_bullet_collisions()
+    def update_game_state(
+        self,
+    ) -> None:
+
+        if self.player.is_alive:
+
+            return
+
+        self.game.show_game_over()
