@@ -98,19 +98,13 @@ class Gameplay(Scene):
         screen: pygame.Surface,
     ) -> None:
 
-        screen.fill(
-            BACKGROUND_COLOR,
-        )
-
-        self.player.draw(
+        self.draw_background(
             screen,
         )
 
-        for enemy in self.enemies:
-
-            enemy.draw(
-                screen,
-            )
+        self.draw_entities(
+            screen,
+        )
 
         self.draw_hud(
             screen,
@@ -329,3 +323,25 @@ class Gameplay(Scene):
             return
 
         self.game.show_game_over()
+    def draw_background(
+        self,
+        screen: pygame.Surface,
+    ) -> None:
+
+        screen.fill(
+            BACKGROUND_COLOR,
+        )
+    def draw_entities(
+        self,
+        screen: pygame.Surface,
+    ) -> None:
+
+        self.player.draw(
+            screen,
+        )
+
+        for enemy in self.enemies:
+
+            enemy.draw(
+                screen,
+            )    
