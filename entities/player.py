@@ -336,7 +336,8 @@ class Player(Entity):
                 delta_time,
             )
 
-        self.cleanup_bullets()    
+        self.cleanup_bullets()  
+    
     def cleanup_bullets(
         self,
     ) -> None:
@@ -347,11 +348,6 @@ class Player(Entity):
 
             for bullet in self._bullets
 
-            if (
-                bullet.is_active
-                and bullet.rect.right > 0
-                and bullet.rect.left < SCREEN_WIDTH
-            )
-
+            if bullet.is_active
         ]
     

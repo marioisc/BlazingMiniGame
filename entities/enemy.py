@@ -132,4 +132,14 @@ class Enemy(Entity):
     def bullets(self):
 
         return self._bullets
+    def cleanup_bullets(self) -> None:
+
+        self._bullets = [
+
+            bullet
+
+            for bullet in self._bullets
+
+            if bullet.is_active
+        ]
 

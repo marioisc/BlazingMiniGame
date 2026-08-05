@@ -171,15 +171,7 @@ class Gameplay(Scene):
 
         for enemy in self.enemies:
 
-            enemy._bullets = [
-
-                bullet
-
-                for bullet in enemy.bullets
-
-                if bullet.is_active
-
-            ]
+            enemy.cleanup_bullets()
 
         self.player.cleanup_bullets()
         
