@@ -159,6 +159,12 @@ class Gameplay(Scene):
         self,
     ) -> None:
 
+        self.player.cleanup_bullets()
+
+        for enemy in self.enemies:
+
+            enemy.cleanup_bullets()
+
         self.enemies = [
 
             enemy
@@ -168,12 +174,6 @@ class Gameplay(Scene):
             if enemy.is_active
 
         ]
-
-        for enemy in self.enemies:
-
-            enemy.cleanup_bullets()
-
-        self.player.cleanup_bullets()
         
     def check_bullet_enemy_collisions(
         self,
