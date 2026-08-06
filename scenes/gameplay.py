@@ -40,7 +40,8 @@ class Gameplay(Scene):
         game,
     ) -> None:
 
-        
+        from systems.stage_manager import StageManager
+        self.stage = StageManager()
         super().__init__(game)
 
         self.player = Player(
@@ -135,11 +136,12 @@ class Gameplay(Scene):
     
             self.enemy_spawn_timer += delta_time
     
-            if self.enemy_spawn_timer < ENEMY_SPAWN_INTERVAL:
-    
-                return
+            if self.enemy_spawn_timer < self.stage.current_wave_data.spawn_interval:
+                if not self.stage.can_spawn_enemy:
+                    return
     
             self.spawn_enemy()
+            self.stage.enemy_spawned()
     
             self.enemy_spawn_timer = 0.0                    
 
@@ -190,6 +192,11 @@ class Gameplay(Scene):
     
             if self.player.is_alive:
     
+                return
+            if self.stage.wave_completed:
+
+                self.stage.next_wave()
+
                 return
     
             self.game.show_game_over()
@@ -293,6 +300,7 @@ class Gameplay(Scene):
                         self.score += SCORE_ENEMY_DESTROYED
     
                         break
+                self.stage.enemy_destroyed()
     
     def check_player_enemy_collisions(
             self,
