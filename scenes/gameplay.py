@@ -80,6 +80,9 @@ class Gameplay(Scene):
         delta_time: float,
     ) -> None:
 
+        self.stage.update(
+            delta_time,
+        )
         self.update_player(
             delta_time,
         )
@@ -195,9 +198,9 @@ class Gameplay(Scene):
             if not self.player.is_alive:
                 self.game.show_game_over()  
                 return
-            if self.stage.wave_completed:
+            if (self.stage.wave_completed and not self.stage.is_transitioning):
 
-                self.stage.next_wave()
+                self.stage.start_transition()
 
                 
     
