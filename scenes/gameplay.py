@@ -144,14 +144,14 @@ class Gameplay(Scene):
     
             self.enemy_spawn_timer += delta_time
     
-            if self.enemy_spawn_timer < self.mission.stage.current_wave_data.spawn_interval:
+            if (self.enemy_spawn_timer < self.mission.current_wave.spawn_interval):
         
                 return
-            if not self.mission.stage.should_spawn_enemy():
+            if not self.mission.should_spawn_enemy():
                 return
 
             self.spawn_enemy()
-            self.mission.stage.enemy_spawned()
+            self.mission.enemy_spawned()
     
             self.enemy_spawn_timer = 0.0                    
 
@@ -306,12 +306,12 @@ class Gameplay(Scene):
                         bullet.destroy()
     
                         enemy.destroy()
-                        self.mission.stage.enemy_destroyed()
+                        self.mission.enemy_destroyed()
     
                         self.score += SCORE_ENEMY_DESTROYED
     
                         break
-                self.mission.stage.enemy_destroyed()
+                self.mission.enemy_destroyed()
     
     def check_player_enemy_collisions(
             self,

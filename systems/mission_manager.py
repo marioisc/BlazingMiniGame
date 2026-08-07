@@ -86,4 +86,46 @@ class MissionManager:
         self._stage.update(
             delta_time,
         )
-        
+    def should_spawn_enemy(
+        self,
+    ) -> bool:
+
+        return self._stage.should_spawn_enemy()
+    def enemy_spawned(
+        self,
+    ) -> None:
+
+        self._stage.enemy_spawned()
+
+    def enemy_destroyed(
+        self,
+    ) -> None:
+
+        self._stage.enemy_destroyed()
+
+    @property
+    def current_wave(
+        self,
+    ):
+
+        return self._stage.current_wave_data
+
+    @property
+    def current_wave_number(
+        self,
+    ) -> int:
+
+        return self._stage.current_wave
+
+    @property
+    def wave_completed(
+        self,
+    ) -> bool:
+
+        return self._stage.wave_completed
+    def next_wave(
+        self,
+    ) -> None:
+
+        self._stage.next_wave()
+    
