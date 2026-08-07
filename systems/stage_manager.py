@@ -36,25 +36,27 @@ class StageManager:
         Wave(
             enemy_count=10,
             spawn_interval=1.50,
-            message=None,
+            duration=10.0,
         ),
 
         Wave(
             enemy_count=15,
             spawn_interval=1.35,
-            message=None,
+            duration=10.0,
+            
         ),
 
         Wave(
             enemy_count=20,
             spawn_interval=1.20,
-            message=None,
+            duration=10.0,
         ),
 
         Wave(
             enemy_count=25,
             spawn_interval=1.00,
-            message=None
+            duration=10.0,
+            message="Get ready for the boss!",
         ),
     )
 
