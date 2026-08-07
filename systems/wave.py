@@ -7,6 +7,7 @@ class Wave:
         self,
         enemy_count: int,
         spawn_interval: float,
+        message: str | None = None,
     ) -> None:
 
         self._enemy_count = enemy_count

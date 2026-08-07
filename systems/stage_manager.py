@@ -36,21 +36,25 @@ class StageManager:
         Wave(
             enemy_count=10,
             spawn_interval=1.50,
+            message=None,
         ),
 
         Wave(
             enemy_count=15,
             spawn_interval=1.35,
+            message=None,
         ),
 
         Wave(
             enemy_count=20,
             spawn_interval=1.20,
+            message=None,
         ),
 
         Wave(
             enemy_count=25,
             spawn_interval=1.00,
+            message=None
         ),
     )
 
@@ -125,8 +129,7 @@ class StageManager:
     ) -> bool:
 
         return (
-            self._enemies_destroyed
-            >= self.current_wave_data.enemy_count
+            self.all_enemies_spawned and self.active_enemies == 0
         )
 
     @property
@@ -211,4 +214,32 @@ class StageManager:
         self._is_transitioning = False
 
         self.next_wave()
+    @property
+    def all_enemies_spawned(
+        self,
+    ) -> bool:
+
+        return (
+
+            self._enemies_spawned
+
+            >=
+
+            self.current_wave_data.enemy_count
+
+        )
+    @property
+    def active_enemies(
+        self,
+    ) -> int:
+
+        return (
+
+            self._enemies_spawned
+
+            -
+
+            self._enemies_destroyed
+
+        )
     

@@ -201,11 +201,12 @@ class Gameplay(Scene):
         ) -> None:
     
             if not self.player.is_alive:
+                self.mission.fail()
                 self.game.show_game_over()  
                 return
-            if (self.mission.stage.wave_completed and not self.mission.stage.is_transitioning):
+            if self.mission.wave_completed:
 
-                self.mission.stage.start_transition()
+                self.mission.next_wave()
 
                 
     

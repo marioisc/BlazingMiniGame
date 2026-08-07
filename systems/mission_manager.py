@@ -123,9 +123,19 @@ class MissionManager:
     ) -> bool:
 
         return self._stage.wave_completed
+    
     def next_wave(
         self,
     ) -> None:
 
+        if self._stage.stage_completed:
+            self._state = MissionState.BOSS_WARNING
+            return
         self._stage.next_wave()
-    
+
+    @property
+    def enemies_remaining(
+        self,
+    ) -> int:
+
+        return self._stage.active_enemies
