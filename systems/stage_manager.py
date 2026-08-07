@@ -160,3 +160,12 @@ class StageManager:
         self._enemies_spawned = 0
 
         self._enemies_destroyed = 0
+
+    def should_spawn_enemy(
+        self,
+    ) -> bool:
+
+        return self.can_spawn_enemy
+    @property
+    def wave_name(self) -> str:
+        return f"Wave {self.current_wave}"

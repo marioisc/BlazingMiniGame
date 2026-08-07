@@ -137,9 +137,11 @@ class Gameplay(Scene):
             self.enemy_spawn_timer += delta_time
     
             if self.enemy_spawn_timer < self.stage.current_wave_data.spawn_interval:
-                if not self.stage.can_spawn_enemy:
-                    return
-    
+        
+                return
+            if not self.stage.should_spawn_enemy():
+                return
+
             self.spawn_enemy()
             self.stage.enemy_spawned()
     
@@ -190,16 +192,16 @@ class Gameplay(Scene):
             self,
         ) -> None:
     
-            if self.player.is_alive:
-    
+            if not self.player.is_alive:
+                self.game.show_game_over()  
                 return
             if self.stage.wave_completed:
 
                 self.stage.next_wave()
 
-                return
+                
     
-            self.game.show_game_over()
+            
     """
     Draw
     """
@@ -296,6 +298,7 @@ class Gameplay(Scene):
                         bullet.destroy()
     
                         enemy.destroy()
+                        self.stage.enemy_destroyed()
     
                         self.score += SCORE_ENEMY_DESTROYED
     
