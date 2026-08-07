@@ -40,8 +40,12 @@ class Gameplay(Scene):
         game,
     ) -> None:
 
-        from systems.stage_manager import StageManager
-        self.stage = StageManager()
+        
+        from systems.mission_manager import MissionManager
+        self.mission = MissionManager()
+
+        self.mission.start()
+
         super().__init__(game)
 
         self.player = Player(
@@ -80,9 +84,10 @@ class Gameplay(Scene):
         delta_time: float,
     ) -> None:
 
-        self.stage.update(
+        self.mission.update(
             delta_time,
         )
+
         self.update_player(
             delta_time,
         )
@@ -139,14 +144,14 @@ class Gameplay(Scene):
     
             self.enemy_spawn_timer += delta_time
     
-            if self.enemy_spawn_timer < self.stage.current_wave_data.spawn_interval:
+            if self.enemy_spawn_timer < self.mission.stage.current_wave_data.spawn_interval:
         
                 return
-            if not self.stage.should_spawn_enemy():
+            if not self.mission.stage.should_spawn_enemy():
                 return
 
             self.spawn_enemy()
-            self.stage.enemy_spawned()
+            self.mission.stage.enemy_spawned()
     
             self.enemy_spawn_timer = 0.0                    
 
@@ -198,9 +203,9 @@ class Gameplay(Scene):
             if not self.player.is_alive:
                 self.game.show_game_over()  
                 return
-            if (self.stage.wave_completed and not self.stage.is_transitioning):
+            if (self.mission.stage.wave_completed and not self.mission.stage.is_transitioning):
 
-                self.stage.start_transition()
+                self.mission.stage.start_transition()
 
                 
     
@@ -301,12 +306,12 @@ class Gameplay(Scene):
                         bullet.destroy()
     
                         enemy.destroy()
-                        self.stage.enemy_destroyed()
+                        self.mission.stage.enemy_destroyed()
     
                         self.score += SCORE_ENEMY_DESTROYED
     
                         break
-                self.stage.enemy_destroyed()
+                self.mission.stage.enemy_destroyed()
     
     def check_player_enemy_collisions(
             self,
