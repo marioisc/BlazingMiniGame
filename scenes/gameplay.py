@@ -204,9 +204,7 @@ class Gameplay(Scene):
                 self.mission.fail()
                 self.game.show_game_over()  
                 return
-            if self.mission.wave_completed:
-
-                self.mission.next_wave()
+            
 
                 
     

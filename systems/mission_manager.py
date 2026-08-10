@@ -10,6 +10,7 @@ Responsabilidades
 -----------------
 - Administrar el flujo completo de la misión.
 - Controlar el estado actual.
+- Controlar el tiempo de cada oleada.
 - Mantener el StageManager como responsable
   de las oleadas.
 
@@ -39,6 +40,8 @@ class MissionManager:
 
         self._stage = StageManager()
 
+        self._remaining_wave_time = 0.0
+
     @property
     def state(
         self,
@@ -66,6 +69,10 @@ class MissionManager:
 
         self._state = MissionState.WAVE
 
+        self._remaining_wave_time = (
+            self.current_wave.duration
+        )
+
     def complete(
         self,
     ) -> None:
@@ -83,14 +90,24 @@ class MissionManager:
         delta_time: float,
     ) -> None:
 
-        self._stage.update(
-            delta_time,
-        )
+        if self._state != MissionState.WAVE:
+
+            return
+
+        self._remaining_wave_time -= delta_time
+
+        if self._remaining_wave_time > 0:
+
+            return
+
+        self._advance_wave()
+
     def should_spawn_enemy(
         self,
     ) -> bool:
 
         return self._stage.should_spawn_enemy()
+
     def enemy_spawned(
         self,
     ) -> None:
@@ -106,7 +123,7 @@ class MissionManager:
     @property
     def current_wave(
         self,
-    ):
+    ) -> Wave:
 
         return self._stage.current_wave_data
 
@@ -117,21 +134,19 @@ class MissionManager:
 
         return self._stage.current_wave
 
-    @property
-    def wave_completed(
-        self,
-    ) -> bool:
-
-        return self._stage.wave_completed
-    
     def next_wave(
         self,
     ) -> None:
 
-        if self._stage.stage_completed:
+        if not self._stage.next_wave():
+
             self._state = MissionState.BOSS_WARNING
+
             return
-        self._stage.next_wave()
+
+        self._remaining_wave_time = (
+            self.current_wave.duration
+        )
 
     @property
     def enemies_remaining(
@@ -139,3 +154,25 @@ class MissionManager:
     ) -> int:
 
         return self._stage.active_enemies
+
+    @property
+    def remaining_wave_time(
+        self,
+    ) -> float:
+
+        return self._remaining_wave_time
+
+    def _advance_wave(
+        self,
+    ) -> None:
+
+        if not self._stage.next_wave():
+
+            self._state = MissionState.BOSS_WARNING
+
+            return
+
+        self._remaining_wave_time = (
+            self.current_wave.duration
+        )
+        
