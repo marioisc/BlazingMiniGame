@@ -122,6 +122,9 @@ class Gameplay(Scene):
         self.draw_hud(
             screen,
         )
+        self.draw_mission_message(
+        screen,
+        )
     """
     Update
     """
@@ -281,6 +284,32 @@ class Gameplay(Scene):
                 ),
     
             )
+    def draw_mission_message(
+        self,
+        screen: pygame.Surface,
+    ) -> None:
+
+        if not self.mission.is_message_visible:
+
+            return
+
+        message_surface = self.font.render(
+            self.mission.mission_message,
+            True,
+            HUD_COLOR,
+        )
+
+        message_rect = message_surface.get_rect(
+            center=(
+            SCREEN_WIDTH // 2,
+            SCREEN_HEIGHT // 2,
+            ),
+        )
+
+        screen.blit(
+        message_surface,
+        message_rect,
+        )
     """
     Collision Detection
     """

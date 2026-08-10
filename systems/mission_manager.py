@@ -32,6 +32,7 @@ from systems.wave import Wave
 
 
 class MissionManager:
+    MESSAGE_DURATION = 3.0
 
     def __init__(
         self,
@@ -42,6 +43,8 @@ class MissionManager:
         self._stage = StageManager()
 
         self._remaining_wave_time = 0.0
+        self._mission_message = None
+        self._message_timer = 0.0
 
     @property
     def state(
@@ -63,7 +66,24 @@ class MissionManager:
     ) -> bool:
 
         return self._state == MissionState.WAVE
+    @property
+    def mission_message(
+        self,
+    ) -> str | None:
 
+        return self._mission_message
+    
+    @property
+    def is_message_visible(
+        self,
+    ) -> bool:
+
+        return (
+            self._state == MissionState.BOSS_WARNING
+            and self._mission_message is not None
+            and self._message_timer > 0
+        )
+    
     def start(
         self,
     ) -> None:
@@ -91,17 +111,20 @@ class MissionManager:
         delta_time: float,
     ) -> None:
 
-        if self._state != MissionState.WAVE:
+        if self._state == MissionState.WAVE:
+            self._remaining_wave_time -= delta_time
 
+            if self._remaining_wave_time <= 0:
+
+                self._advance_wave()
             return
-
-        self._remaining_wave_time -= delta_time
-
-        if self._remaining_wave_time > 0:
-
-            return
-
-        self._advance_wave()
+        if self._state == MissionState.BOSS_WARNING:
+            if self._message_timer > 0:
+                self._message_timer -= delta_time
+                if self._message_timer < 0:
+                    self._message_timer = 0.0
+                
+        
 
     def should_spawn_enemy(
         self,
@@ -147,6 +170,8 @@ class MissionManager:
     ) -> None:
 
         if not self._stage.next_wave():
+            self._mission_message = (self.current_wave.message)
+            self._message_timer = (self.MESSAGE_DURATION)
 
             self._state = MissionState.BOSS_WARNING
 
