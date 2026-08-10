@@ -310,7 +310,7 @@ class Gameplay(Scene):
                         self.score += SCORE_ENEMY_DESTROYED
     
                         break
-                self.mission.enemy_destroyed()
+                
     
     def check_player_enemy_collisions(
             self,

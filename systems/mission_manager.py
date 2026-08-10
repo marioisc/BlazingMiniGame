@@ -28,6 +28,7 @@ from __future__ import annotations
 
 from systems.mission_state import MissionState
 from systems.stage_manager import StageManager
+from systems.wave import Wave
 
 
 class MissionManager:
@@ -134,27 +135,6 @@ class MissionManager:
 
         return self._stage.current_wave
 
-    def next_wave(
-        self,
-    ) -> None:
-
-        if not self._stage.next_wave():
-
-            self._state = MissionState.BOSS_WARNING
-
-            return
-
-        self._remaining_wave_time = (
-            self.current_wave.duration
-        )
-
-    @property
-    def enemies_remaining(
-        self,
-    ) -> int:
-
-        return self._stage.active_enemies
-
     @property
     def remaining_wave_time(
         self,
@@ -175,4 +155,3 @@ class MissionManager:
         self._remaining_wave_time = (
             self.current_wave.duration
         )
-        

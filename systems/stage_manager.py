@@ -11,7 +11,7 @@ Responsabilidades
 - Administrar las oleadas del escenario.
 - Llevar el progreso de las oleadas.
 - Controlar la cantidad de enemigos que
-corresponden a cada oleada.
+  corresponden a cada oleada.
 
 No crea enemigos.
 
@@ -101,17 +101,6 @@ class StageManager:
     ) -> int:
 
         return self._enemies_destroyed
-
-    @property
-    def enemies_remaining(
-        self,
-    ) -> int:
-
-        return max(
-            0,
-            self.current_wave_data.enemy_count
-            - self._enemies_destroyed,
-        )
 
     @property
     def can_spawn_enemy(
