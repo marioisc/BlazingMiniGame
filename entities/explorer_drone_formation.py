@@ -1,10 +1,13 @@
 """
 Explorer Drone group support for Operation Phoenix.
 
-Sprint 4-D2
------------
+Sprint 4-D3 Hotfix
+------------------
 Keeps the five Explorer Drones synchronized for movement timing
 and simultaneous firing.
+
+The formation is horizontal: all drones share the same Y position
+and enter the screen one behind another on the X axis.
 """
 
 from __future__ import annotations
@@ -16,14 +19,14 @@ class ExplorerDroneFormation:
     """
     Controls one group of five Explorer Drones.
 
-    The formation is intentionally lightweight. It does not
-    implement power-ups; that functionality will be added later.
+    The five drones form a horizontal line and move together from
+    right to left. They share one firing timer so all active drones
+    fire simultaneously.
     """
 
     GROUP_SIZE: int = 5
 
     HORIZONTAL_SPACING: int = 52
-    VERTICAL_SPACING: int = 48
 
     def __init__(
         self,
@@ -31,15 +34,15 @@ class ExplorerDroneFormation:
         y: float,
     ) -> None:
         """
-        Create a five-drone formation.
+        Create a five-drone horizontal formation.
         """
 
         self._group = ExplorerDroneGroup()
 
         self._drones = [
             ExplorerDrone(
-                x=x,
-                y=y + (index - 2) * self.VERTICAL_SPACING,
+                x=x + index * self.HORIZONTAL_SPACING,
+                y=y,
                 group=self._group,
             )
             for index in range(self.GROUP_SIZE)
