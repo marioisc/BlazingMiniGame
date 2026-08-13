@@ -1,13 +1,14 @@
 """
 Gameplay scene.
 
-Sprint 4-D3
+Sprint 4-D5
 -----------
-Explorer Drone integration.
+Heavy Ship integration.
 
-This version keeps the existing Gameplay responsibilities while adding
-Explorer Drone formations to Wave 1 only. Other waves continue using the
-base Enemy until their dedicated enemy integration sprints.
+Wave 1 uses Explorer Drone formations.
+Wave 2 uses individual Attack Hunters.
+Wave 3 uses individual Heavy Ships.
+Wave 4 uses Sniper Enemies and Interceptor Angels.
 
 Explorer Drone rules:
 - One formation contains five drones.
@@ -35,6 +36,10 @@ from config import (
 
 from entities.enemy import Enemy
 from entities.explorer_drone import ExplorerDrone
+from entities.attack_hunter import AttackHunter
+from entities.heavy_ship import HeavyShip
+from entities.sniper_enemy import SniperEnemy
+from entities.interceptor_angel import InterceptorAngel
 from entities.explorer_drone_formation import ExplorerDroneFormation
 from entities.player import Player
 
@@ -183,9 +188,11 @@ class Gameplay(Scene):
         """
         Spawn enemies according to the current wave.
 
-        Wave 1 is integrated with the five-drone Explorer formation.
-        Other waves keep the previous single-Enemy behavior until their
-        dedicated enemy integration sprints are implemented.
+        Wave 1 uses five-drone Explorer formations.
+        Wave 2 uses individual Attack Hunters.
+        Wave 3 uses individual Heavy Ships.
+        Wave 4 keeps the previous single-Enemy behavior until its
+        dedicated enemy integration sprint.
         """
 
         self.enemy_spawn_timer += delta_time
@@ -219,6 +226,9 @@ class Gameplay(Scene):
         Explorer Drones are updated by their formation controller.
         They are skipped in the standalone enemy loop to avoid updating
         them twice per frame.
+
+        Attack Hunters, Heavy Ships, Sniper Enemies, Interceptor Angels and the base Enemy are
+        updated through the normal standalone enemy path.
         """
 
         for formation in self._explorer_formations:
@@ -324,6 +334,57 @@ class Gameplay(Scene):
                 screen,
             )
 
+            if isinstance(
+                enemy,
+                (HeavyShip, SniperEnemy, InterceptorAngel),
+            ):
+
+                self.draw_enemy_health(
+                    screen,
+                    enemy,
+                )
+
+    def draw_enemy_health(
+        self,
+        screen: pygame.Surface,
+        enemy,
+    ) -> None:
+        """
+        Draw a health bar above a multi-hit enemy.
+        """
+
+        bar_width = enemy.WIDTH
+        bar_height = 5
+
+        x = enemy.rect.left
+        y = enemy.rect.top - 8
+
+        pygame.draw.rect(
+            screen,
+            pygame.Color("black"),
+            (
+                x,
+                y,
+                bar_width,
+                bar_height,
+            ),
+        )
+
+        health_ratio = (
+            enemy.health / enemy.MAX_HEALTH
+        )
+
+        pygame.draw.rect(
+            screen,
+            pygame.Color("red"),
+            (
+                x,
+                y,
+                int(bar_width * health_ratio),
+                bar_height,
+            ),
+        )
+
     def draw_hud(
         self,
         screen: pygame.Surface,
@@ -414,11 +475,30 @@ class Gameplay(Scene):
 
                     bullet.destroy()
 
-                    enemy.destroy()
+                    if isinstance(
+                        enemy,
+                        (HeavyShip, SniperEnemy, InterceptorAngel),
+                    ):
 
-                    self.mission.enemy_destroyed()
+                        if enemy.take_damage(1):
 
-                    self.score += SCORE_ENEMY_DESTROYED
+                            self.mission.enemy_destroyed()
+
+                            self.score += enemy.SCORE_VALUE
+
+                    else:
+
+                        enemy.destroy()
+
+                        self.mission.enemy_destroyed()
+
+                        self.score += (
+                            getattr(
+                                enemy,
+                                "SCORE_VALUE",
+                                SCORE_ENEMY_DESTROYED,
+                            )
+                        )
 
                     break
 
@@ -488,6 +568,15 @@ class Gameplay(Scene):
         Wave 1:
             Creates one Explorer Drone formation containing five drones.
 
+        Wave 2:
+            Creates one Attack Hunter.
+
+        Wave 3:
+            Creates one Heavy Ship.
+
+        Wave 4:
+            Creates one Sniper Enemy.
+
         Other waves:
             Creates one standard Enemy.
         """
@@ -499,8 +588,6 @@ class Gameplay(Scene):
                 - self.mission.stage.enemies_spawned
             )
 
-            # A formation always contains five drones. Do not create a
-            # formation when fewer than five slots remain.
             if remaining >= ExplorerDroneFormation.GROUP_SIZE:
 
                 formation = ExplorerDroneFormation(
@@ -520,6 +607,66 @@ class Gameplay(Scene):
                 )
 
                 return ExplorerDroneFormation.GROUP_SIZE
+
+        if self.mission.current_wave_number == 2:
+
+            enemy = AttackHunter(
+                SCREEN_WIDTH,
+                random.randint(
+                    0,
+                    SCREEN_HEIGHT - AttackHunter.HEIGHT,
+                ),
+            )
+
+            self.enemies.append(
+                enemy,
+            )
+
+            return 1
+
+        if self.mission.current_wave_number == 3:
+
+            enemy = HeavyShip(
+                SCREEN_WIDTH,
+                random.randint(
+                    0,
+                    SCREEN_HEIGHT - HeavyShip.HEIGHT,
+                ),
+            )
+
+            self.enemies.append(
+                enemy,
+            )
+
+            return 1
+
+        if self.mission.current_wave_number == 4:
+
+            if random.random() < 0.5:
+
+                enemy = SniperEnemy(
+                    SCREEN_WIDTH,
+                    random.randint(
+                        0,
+                        SCREEN_HEIGHT - SniperEnemy.HEIGHT,
+                    ),
+                )
+
+            else:
+
+                enemy = InterceptorAngel(
+                    SCREEN_WIDTH,
+                    random.randint(
+                        40,
+                        180,
+                    ),
+                )
+
+            self.enemies.append(
+                enemy,
+            )
+
+            return 1
 
         enemy = Enemy(
             SCREEN_WIDTH,
