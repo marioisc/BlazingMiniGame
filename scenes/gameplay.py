@@ -1,19 +1,19 @@
 """
 Gameplay scene.
 
-Sprint 4-D5
+Sprint 5-B2
 -----------
-Heavy Ship integration.
+Attack Hunter dive and retreat behavior: Sprint 5-B2.
 
 Wave 1 uses Explorer Drone formations.
-Wave 2 uses individual Attack Hunters.
+Wave 2 uses pairs of Attack Hunters. Each pair performs one attack run and is discarded after the Hunters retreat or are destroyed.
 Wave 3 uses individual Heavy Ships.
 Wave 4 uses Sniper Enemies and Interceptor Angels.
 
 Explorer Drone rules:
 - One formation contains five drones.
-- Wave 1 has ten enemy slots, therefore two formations are spawned.
-- The five drones share movement timing and fire simultaneously.
+- Wave 1 contains thirty Explorer Drones, spawned as three batches of ten drones.
+- Each row contains five drones. Two rows spawn together every ten seconds, and the rows move in a full-screen vertical zig-zag. Initial firing starts three seconds after each row appears.
 - Power-up logic is intentionally not implemented yet.
 """
 
@@ -188,7 +188,7 @@ class Gameplay(Scene):
         """
         Spawn enemies according to the current wave.
 
-        Wave 1 uses five-drone Explorer formations.
+        Wave 1 uses two five-drone Explorer formations per batch.
         Wave 2 uses individual Attack Hunters.
         Wave 3 uses individual Heavy Ships.
         Wave 4 keeps the previous single-Enemy behavior until its
@@ -198,10 +198,14 @@ class Gameplay(Scene):
         self.enemy_spawn_timer += delta_time
 
         if (
-            self.enemy_spawn_timer
-            < self.mission.current_wave.spawn_interval
+            self.mission.current_wave_number != 1
+            or self.mission.stage.enemies_spawned > 0
         ):
-            return
+            if (
+                self.enemy_spawn_timer
+                < self.mission.current_wave.spawn_interval
+            ):
+                return
 
         if not self.mission.should_spawn_enemy():
             return
@@ -588,41 +592,76 @@ class Gameplay(Scene):
                 - self.mission.stage.enemies_spawned
             )
 
-            if remaining >= ExplorerDroneFormation.GROUP_SIZE:
+            batch_size = (
+                ExplorerDroneFormation.GROUP_SIZE * 2
+            )
 
-                formation = ExplorerDroneFormation(
-                    SCREEN_WIDTH,
-                    random.randint(
-                        80,
-                        SCREEN_HEIGHT - 120,
+            if remaining >= batch_size:
+
+                first_y = random.randint(
+                    120,
+                    SCREEN_HEIGHT - 220,
+                )
+
+                second_y = max(
+                    40,
+                    min(
+                        SCREEN_HEIGHT - 80,
+                        SCREEN_HEIGHT - first_y,
                     ),
                 )
 
-                self._explorer_formations.append(
-                    formation,
+                first_formation = ExplorerDroneFormation(
+                    SCREEN_WIDTH,
+                    first_y,
+                    vertical_direction=1,
+                )
+
+                second_formation = ExplorerDroneFormation(
+                    SCREEN_WIDTH,
+                    second_y,
+                    vertical_direction=-1,
+                )
+
+                self._explorer_formations.extend(
+                    (
+                        first_formation,
+                        second_formation,
+                    ),
                 )
 
                 self.enemies.extend(
-                    formation.drones,
+                    first_formation.drones,
                 )
 
-                return ExplorerDroneFormation.GROUP_SIZE
+                self.enemies.extend(
+                    second_formation.drones,
+                )
+
+                return batch_size
 
         if self.mission.current_wave_number == 2:
 
-            enemy = AttackHunter(
+            top_hunter = AttackHunter(
                 SCREEN_WIDTH,
-                random.randint(
-                    0,
-                    SCREEN_HEIGHT - AttackHunter.HEIGHT,
+                -AttackHunter.HEIGHT,
+                self.player,
+            )
+
+            bottom_hunter = AttackHunter(
+                SCREEN_WIDTH,
+                SCREEN_HEIGHT,
+                self.player,
+            )
+
+            self.enemies.extend(
+                (
+                    top_hunter,
+                    bottom_hunter,
                 ),
             )
 
-            self.enemies.append(
-                enemy,
-            )
-
-            return 1
+            return 2
 
         if self.mission.current_wave_number == 3:
 
