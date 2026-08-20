@@ -1,7 +1,7 @@
 """
 Heavy Ship enemy for Operation Phoenix.
 
-Sprint 4-D5
+Sprint 5-C3.5
 -----------
 - Slow and highly resistant enemy.
 - Appears individually in Wave 3.
@@ -107,10 +107,10 @@ class HeavyShip(Enemy):
     CONTACT_DAMAGE: int = 2
     SCORE_VALUE: int = 500
 
-    FIRE_COOLDOWN: float = 2.0
+    FIRE_COOLDOWN: float = 3.0
 
     STOP_X: int = 620
-    ADVANCE_TIME: float = 1.5
+    ATTACK_DURATION: float = 10.0
 
     SHOT_SPEED_Y: float = 90.0
 
@@ -131,8 +131,11 @@ class HeavyShip(Enemy):
         self._health = self.MAX_HEALTH
 
         self._stopped = False
+        self._attack_timer = 0.0
         self._advancing = False
-        self._advance_timer = 0.0
+
+        self._attack_position_y = self.y
+        self._moving_to_attack_position = False
 
         # The first shot occurs after the ship reaches its firing position.
         self._fire_timer = self.FIRE_COOLDOWN
@@ -179,6 +182,17 @@ class HeavyShip(Enemy):
 
         return False
 
+    def set_attack_position(
+        self,
+        target_y: float,
+    ) -> None:
+        """
+        Set the vertical attack position for the Heavy Ship.
+        """
+
+        self._attack_position_y = float(target_y)
+        self._moving_to_attack_position = True
+
     def update(
         self,
         delta_time: float,
@@ -187,7 +201,37 @@ class HeavyShip(Enemy):
         Update movement, firing cycle and projectiles.
         """
 
-        if not self._stopped:
+        if self._moving_to_attack_position:
+
+            vertical_speed = self.SPEED
+
+            if self.y < self._attack_position_y:
+
+                self.y = min(
+                    self.y + vertical_speed * delta_time,
+                    self._attack_position_y,
+                )
+
+            else:
+
+                self.y = max(
+                    self.y - vertical_speed * delta_time,
+                    self._attack_position_y,
+                )
+
+            if abs(
+                self.y - self._attack_position_y
+            ) < 0.5:
+
+                self.y = self._attack_position_y
+                self._moving_to_attack_position = False
+                self._stopped = True
+                self._attack_timer = 0.0
+                self._fire_timer = self.FIRE_COOLDOWN
+
+            self.sync_rect()
+
+        elif not self._stopped:
 
             self.x -= self.SPEED * delta_time
 
@@ -196,31 +240,33 @@ class HeavyShip(Enemy):
             if self.rect.left <= self.STOP_X:
 
                 self._stopped = True
-                self._fire_timer = self.FIRE_COOLDOWN
+                self._attack_timer = 0.0
+                self._fire_timer = 0.0
 
-        elif self._advancing:
+        elif not self._advancing:
 
-            self.x -= self.SPEED * delta_time
-
-            self.sync_rect()
-
-            self._advance_timer -= delta_time
-
-            if self._advance_timer <= 0:
-
-                self._advancing = False
-                self._fire_timer = self.FIRE_COOLDOWN
-
-        else:
-
+            self._attack_timer += delta_time
             self._fire_timer -= delta_time
 
             if self._fire_timer <= 0:
 
                 self._shoot()
 
+                self._fire_timer = self.FIRE_COOLDOWN
+
+            if self._attack_timer >= self.ATTACK_DURATION:
+
                 self._advancing = True
-                self._advance_timer = self.ADVANCE_TIME
+
+        else:
+
+            self.x -= self.SPEED * delta_time
+
+            self.sync_rect()
+
+            if self.rect.right < 0:
+
+                self.destroy()
 
         if self.rect.right < 0:
 

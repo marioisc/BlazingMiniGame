@@ -1,13 +1,13 @@
 """
 Gameplay scene.
 
-Sprint 5-B2
+Sprint 5-C3.5
 -----------
-Attack Hunter dive and retreat behavior: Sprint 5-B2.
+Heavy Ship pair attack behavior and Wave 3 spawn fix: Sprint 5-C2.
 
 Wave 1 uses Explorer Drone formations.
 Wave 2 uses pairs of Attack Hunters. Each pair performs one attack run and is discarded after the Hunters retreat or are destroyed.
-Wave 3 uses individual Heavy Ships.
+Wave 3 uses Heavy Ship pairs: one from above and one from below.
 Wave 4 uses Sniper Enemies and Interceptor Angels.
 
 Explorer Drone rules:
@@ -79,6 +79,9 @@ class Gameplay(Scene):
         # Explorer Drone formations are managed separately because one
         # formation represents five individual enemies.
         self._explorer_formations: list[ExplorerDroneFormation] = []
+        self._heavy_ship_pair_active = False
+        self._heavy_ship_pair_cooldown = 0.0
+
 
         self.enemy_spawn_timer = 0.0
 
@@ -181,6 +184,41 @@ class Gameplay(Scene):
             keys,
         )
 
+    def _update_heavy_ship_pair_cycle(
+        self,
+        delta_time: float,
+    ) -> None:
+        """Start the three-second cooldown after a pair is gone."""
+
+        if self.mission.current_wave_number != 3:
+            return
+
+        if not self._heavy_ship_pair_active:
+            return
+
+        if any(
+            isinstance(enemy, HeavyShip)
+            for enemy in self.enemies
+        ):
+            return
+
+        self._heavy_ship_pair_active = False
+        self._heavy_ship_pair_cooldown = 3.0
+
+    def _update_heavy_ship_pair_cooldown(
+        self,
+        delta_time: float,
+    ) -> None:
+        """Decrease the post-pair cooldown."""
+
+        if self._heavy_ship_pair_cooldown <= 0.0:
+            return
+
+        self._heavy_ship_pair_cooldown = max(
+            0.0,
+            self._heavy_ship_pair_cooldown - delta_time,
+        )
+
     def spawn_enemies(
         self,
         delta_time: float,
@@ -194,6 +232,14 @@ class Gameplay(Scene):
         Wave 4 keeps the previous single-Enemy behavior until its
         dedicated enemy integration sprint.
         """
+
+        self._update_heavy_ship_pair_cycle(
+            delta_time,
+        )
+
+        self._update_heavy_ship_pair_cooldown(
+            delta_time,
+        )
 
         self.enemy_spawn_timer += delta_time
 
@@ -665,19 +711,60 @@ class Gameplay(Scene):
 
         if self.mission.current_wave_number == 3:
 
-            enemy = HeavyShip(
-                SCREEN_WIDTH,
-                random.randint(
-                    0,
-                    SCREEN_HEIGHT - HeavyShip.HEIGHT,
+            if self._heavy_ship_pair_active:
+                return 0
+
+            if self._heavy_ship_pair_cooldown > 0.0:
+                return 0
+
+            remaining = (
+                self.mission.current_wave.enemy_count
+                - self.mission.stage.enemies_spawned
+            )
+
+            if remaining < 2:
+                return 0
+
+            center_x = (
+                SCREEN_WIDTH // 2
+                - HeavyShip.WIDTH // 2
+            )
+
+            center_y = (
+                SCREEN_HEIGHT // 2
+                - HeavyShip.HEIGHT // 2
+            )
+
+            separation = HeavyShip.HEIGHT * 4
+
+            top_ship = HeavyShip(
+                center_x,
+                40,
+            )
+
+            bottom_ship = HeavyShip(
+                center_x,
+                SCREEN_HEIGHT - HeavyShip.HEIGHT - 40,
+            )
+
+            top_ship.set_attack_position(
+                center_y - separation / 2,
+            )
+
+            bottom_ship.set_attack_position(
+                center_y + separation / 2,
+            )
+
+            self.enemies.extend(
+                (
+                    top_ship,
+                    bottom_ship,
                 ),
             )
 
-            self.enemies.append(
-                enemy,
-            )
+            self._heavy_ship_pair_active = True
 
-            return 1
+            return 2
 
         if self.mission.current_wave_number == 4:
 
