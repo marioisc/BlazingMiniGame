@@ -1,7 +1,7 @@
 """
 Gameplay scene.
 
-Sprint 5-C3.5
+Sprint 5-D4
 -----------
 Heavy Ship pair attack behavior and Wave 3 spawn fix: Sprint 5-C2.
 
@@ -81,6 +81,8 @@ class Gameplay(Scene):
         self._explorer_formations: list[ExplorerDroneFormation] = []
         self._heavy_ship_pair_active = False
         self._heavy_ship_pair_cooldown = 0.0
+
+        self._sniper_trio_active = False
 
 
         self.enemy_spawn_timer = 0.0
@@ -219,6 +221,29 @@ class Gameplay(Scene):
             self._heavy_ship_pair_cooldown - delta_time,
         )
 
+    def _update_sniper_trio_cycle(
+        self,
+        delta_time: float,
+    ) -> None:
+        """
+        Allow the next Sniper trio to spawn immediately after the
+        current trio has completely left the screen or been removed.
+        """
+
+        if self.mission.current_wave_number != 4:
+            return
+
+        if not self._sniper_trio_active:
+            return
+
+        if any(
+            isinstance(enemy, SniperEnemy)
+            for enemy in self.enemies
+        ):
+            return
+
+        self._sniper_trio_active = False
+
     def spawn_enemies(
         self,
         delta_time: float,
@@ -238,6 +263,10 @@ class Gameplay(Scene):
         )
 
         self._update_heavy_ship_pair_cooldown(
+            delta_time,
+        )
+
+        self._update_sniper_trio_cycle(
             delta_time,
         )
 
@@ -725,6 +754,9 @@ class Gameplay(Scene):
             if remaining < 2:
                 return 0
 
+            if self.mission.stage.enemies_spawned >= 20:
+                return 0
+
             center_x = (
                 SCREEN_WIDTH // 2
                 - HeavyShip.WIDTH // 2
@@ -768,31 +800,60 @@ class Gameplay(Scene):
 
         if self.mission.current_wave_number == 4:
 
-            if random.random() < 0.5:
+            if self._sniper_trio_active:
+                return 0
 
-                enemy = SniperEnemy(
-                    SCREEN_WIDTH,
-                    random.randint(
-                        0,
-                        SCREEN_HEIGHT - SniperEnemy.HEIGHT,
-                    ),
-                )
-
-            else:
-
-                enemy = InterceptorAngel(
-                    SCREEN_WIDTH,
-                    random.randint(
-                        40,
-                        180,
-                    ),
-                )
-
-            self.enemies.append(
-                enemy,
+            remaining = (
+                self.mission.current_wave.enemy_count
+                - self.mission.stage.enemies_spawned
             )
 
-            return 1
+            group_size = 4
+
+            if remaining < group_size:
+                return 0
+
+            center_y = (
+                SCREEN_HEIGHT // 2
+                - SniperEnemy.HEIGHT // 2
+            )
+
+            spacing = SniperEnemy.HEIGHT * 3
+
+            sniper_positions = (
+                center_y - spacing,
+                center_y,
+                center_y + spacing,
+            )
+
+            snipers = [
+                SniperEnemy(
+                    SCREEN_WIDTH,
+                    max(
+                        0,
+                        min(
+                            SCREEN_HEIGHT - SniperEnemy.HEIGHT,
+                            y,
+                        ),
+                    ),
+                )
+                for y in sniper_positions
+            ]
+
+            interceptor = InterceptorAngel(
+                SCREEN_WIDTH,
+                random.randint(
+                    40,
+                    180,
+                ),
+            )
+
+            self.enemies.extend(snipers)
+            self.enemies.append(interceptor)
+
+            self._sniper_trio_active = True
+
+            return group_size
 
         enemy = Enemy(
             SCREEN_WIDTH,

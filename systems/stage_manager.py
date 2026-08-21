@@ -1,7 +1,7 @@
 """
 ==========================================================
 Project : Operation Phoenix
-Version : 0.6.0
+Version : 0.6.5
 
 Archivo:
     stage_manager.py
@@ -42,20 +42,21 @@ class StageManager:
         Wave(
             enemy_count=20,
             spawn_interval=3.0,
-            duration=30.0,
+            duration=25.0,
         ),
 
         Wave(
             enemy_count=20,
-            spawn_interval=3.0,
+            spawn_interval=2.0,
             duration=180.0,
         ),
 
         Wave(
-            enemy_count=25,
-            spawn_interval=1.00,
-            duration=10.0,
+            enemy_count=16,
+            spawn_interval=0.0,
+            duration=40.0,
             message="Get ready for the boss!",
+            message_time=15.0,
         ),
     )
 

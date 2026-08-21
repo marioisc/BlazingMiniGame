@@ -9,6 +9,7 @@ class Wave:
         spawn_interval: float,
         duration: float,
         message: str | None = None,
+        message_time: float | None = None,
     ) -> None:
 
         self._enemy_count = enemy_count
@@ -18,6 +19,8 @@ class Wave:
         self._duration = duration
 
         self._message = message
+
+        self._message_time = message_time
 
     @property
     def enemy_count(
@@ -46,3 +49,9 @@ class Wave:
     ) -> str | None:
 
         return self._message
+    @property
+    def message_time(
+        self,
+    ) -> float | None:
+
+        return self._message_time
